@@ -1,19 +1,9 @@
 [package]
-name = "bft"
+name = "bft_types"
 version = "0.1.0"
 authors = ["John Ward <john@johnward.net>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace] 
-
-members = [
-    "bft_types",
-    "bft_interp",
-]
-
 [dependencies]
-
-bft_interp = { version = "0.1.0", path = "bft_interp" }
-bft_types = { version = "0.1.0", path = "bft_types" }
