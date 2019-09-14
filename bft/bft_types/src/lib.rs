@@ -1,3 +1,11 @@
+//! This is the documentaton for the crate itself
+//! It can be mmany line of clde
+//! 
+//! Woop!
+//! 
+//! _Woop Again_
+//! ==========
+
 use std::fmt;
 use std::io::Result;
 use std::path::{Path, PathBuf};
@@ -7,22 +15,14 @@ use std::string::ToString;
 #[derive(Debug)]
 pub struct BFProgram {
     filename: PathBuf,
-<<<<<<< HEAD
     cells: Vec<InputInstruction>,
-=======
-    instructions: Vec<InputInstruction>,
->>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
 }
 
 impl BFProgram {
     pub fn new<T: AsRef<Path>>(a_path: T) -> BFProgram {
         BFProgram {
             filename: a_path.as_ref().to_path_buf(),
-<<<<<<< HEAD
             cells: Vec::new(),
-=======
-            instructions: Vec::new(),
->>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
         }
     }
 
@@ -30,9 +30,12 @@ impl BFProgram {
         &self.filename
     }
 
-<<<<<<< HEAD
     pub fn get_cell(&self, index: usize) -> &InputInstruction {
         &self.cells[index]
+    }
+
+    pub fn cells(&self) -> &Vec<InputInstruction> {
+        &self.cells
     }
 
     pub fn add_cell(&mut self, instruction: InputInstruction) {
@@ -41,17 +44,6 @@ impl BFProgram {
 
 
     pub fn from_file<T: AsRef<Path>>(a_path: T) -> Result<BFProgram> {
-=======
-    pub fn instructions(&self) -> &Vec<InputInstruction> {
-        &self.instructions
-    }
-
-    fn add_instruction(&mut self, instruction: InputInstruction) {
-        self.instructions.push(instruction);
-    }
-
-    pub fn from_file<T: AsRef<Path>>(&self, a_path: T) -> Result<BFProgram> {
->>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
         let content = std::fs::read_to_string(&a_path)?;
 
         let mut program = BFProgram::new(a_path);
@@ -65,11 +57,7 @@ impl BFProgram {
                 match BFCommand::from_char(achar) {
                     Some(v) => {
                         let instruction = InputInstruction::new(v, line_num, col_num);
-<<<<<<< HEAD
                         program.add_cell(instruction);
-=======
-                        program.add_instruction(instruction);
->>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
                     }
                     None => (),
                 }
@@ -97,14 +85,38 @@ pub enum BFCommand {
 impl BFCommand {
     fn from_char(raw_command: char) -> Option<BFCommand> {
         match raw_command {
-            '>' => Some(BFCommand::IncrementPointer(raw_command)),
-            '<' => Some(BFCommand::DecrementPointer(raw_command)),
-            '+' => Some(BFCommand::IncrementByte(raw_command)),
-            '-' => Some(BFCommand::DecrementByte(raw_command)),
-            '.' => Some(BFCommand::OutputByte(raw_command)),
-            ',' => Some(BFCommand::InputByte(raw_command)),
-            '[' => Some(BFCommand::IfZeroJumpForward(raw_command)),
-            ']' => Some(BFCommand::IfNonZeroJumpBack(raw_command)),
+            '>' => {
+                println!(">");
+                Some(BFCommand::IncrementPointer(raw_command))
+            },
+            '<' => {
+                println!("<");
+                Some(BFCommand::DecrementPointer(raw_command))
+            },
+            '+' => {
+                println!("+");
+                Some(BFCommand::IncrementByte(raw_command))
+            },
+            '-' => {
+                println!("-");
+                Some(BFCommand::DecrementByte(raw_command))
+            },
+            '.' => {
+                println!(".");
+                Some(BFCommand::OutputByte(raw_command))
+            },
+            ',' => {
+                println!(",");
+                Some(BFCommand::InputByte(raw_command))
+            },
+            '[' => {
+                println!("[");
+                Some(BFCommand::IfZeroJumpForward(raw_command))
+            },
+            ']' => {
+                println!("]");
+                Some(BFCommand::IfNonZeroJumpBack(raw_command))
+            },
             _ => None,
         }
     }
@@ -118,7 +130,7 @@ pub struct InputInstruction {
 }
 
 impl InputInstruction {
-    fn new(command: BFCommand, line_number: usize, column_number: usize) -> InputInstruction {
+    pub fn new(command: BFCommand, line_number: usize, column_number: usize) -> InputInstruction {
         InputInstruction {
             command,
             line_number,
@@ -126,15 +138,15 @@ impl InputInstruction {
         }
     }
 
-    fn get_command(&self) -> &BFCommand {
+    pub fn get_command(&self) -> &BFCommand {
         &self.command
     }
 
-    fn line_number(&self) -> usize {
+    pub fn line_number(&self) -> usize {
         self.line_number
     }
 
-    fn column_number(&self) -> usize {
+    pub fn column_number(&self) -> usize {
         self.column_number
     }
 }
@@ -162,5 +174,57 @@ fn get_raw_command(a_bfcommand: &BFCommand) -> Option<String> {
         BFCommand::IfZeroJumpForward('[') => Some("[".to_string()),
         BFCommand::IfNonZeroJumpBack(']') => Some("]".to_string()),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::BFProgram;
+    use super::BFCommand;
+    use std::env;
+    #[test]
+    fn value_is_correct() {
+
+        let mut path = env::current_dir().unwrap();
+        path.set_file_name("inputbf.txt");
+
+        let program = BFProgram::from_file(path).unwrap();
+
+        let mut byte: u8 = 0b00000000;
+
+        for cell in program.cells() {
+
+            let a_bfcommand: &BFCommand = cell.get_command();
+
+            match a_bfcommand {
+                BFCommand::IncrementPointer('>')   => byte ^= 0b00000001,
+                BFCommand::DecrementPointer('<')   => byte ^= 0b00000010,
+                BFCommand::IncrementByte('+')      => byte ^= 0b00000100,
+                BFCommand::DecrementByte('-')      => byte ^= 0b00001000,
+                BFCommand::OutputByte('.')         => byte ^= 0b00010000,
+                BFCommand::InputByte(',')          => byte ^= 0b00100000,
+                BFCommand::IfZeroJumpForward('[')  => byte ^= 0b01000000,
+                BFCommand::IfNonZeroJumpBack(']')  => byte ^= 0b10000000,
+                _ => (),
+                }
+        }
+
+        assert_eq!(byte, 0b11111111);
+    }
+
+    #[test]
+    fn line_column_number_is_correct() {
+        let mut path = env::current_dir().unwrap();
+        path.set_file_name("inputbf.txt");
+
+        let program = BFProgram::from_file(path).unwrap();
+
+        let instruct1 = program.get_cell(0);
+        assert_eq!(instruct1.line_number(), 7);
+        assert_eq!(instruct1.column_number(), 7);
+
+        let instruct2 = program.get_cell(7);
+        assert_eq!(instruct2.line_number(), 9);
+        assert_eq!(instruct2.column_number(), 11);
     }
 }

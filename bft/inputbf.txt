@@ -19,3 +19,5 @@ This is your input file
        >-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-.
     
     But perhaps you're as lost as a little lamb?
+
+,,,---
