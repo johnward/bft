@@ -7,14 +7,22 @@ use std::string::ToString;
 #[derive(Debug)]
 pub struct BFProgram {
     filename: PathBuf,
+<<<<<<< HEAD
     cells: Vec<InputInstruction>,
+=======
+    instructions: Vec<InputInstruction>,
+>>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
 }
 
 impl BFProgram {
     pub fn new<T: AsRef<Path>>(a_path: T) -> BFProgram {
         BFProgram {
             filename: a_path.as_ref().to_path_buf(),
+<<<<<<< HEAD
             cells: Vec::new(),
+=======
+            instructions: Vec::new(),
+>>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
         }
     }
 
@@ -22,6 +30,7 @@ impl BFProgram {
         &self.filename
     }
 
+<<<<<<< HEAD
     pub fn get_cell(&self, index: usize) -> &InputInstruction {
         &self.cells[index]
     }
@@ -32,6 +41,17 @@ impl BFProgram {
 
 
     pub fn from_file<T: AsRef<Path>>(a_path: T) -> Result<BFProgram> {
+=======
+    pub fn instructions(&self) -> &Vec<InputInstruction> {
+        &self.instructions
+    }
+
+    fn add_instruction(&mut self, instruction: InputInstruction) {
+        self.instructions.push(instruction);
+    }
+
+    pub fn from_file<T: AsRef<Path>>(&self, a_path: T) -> Result<BFProgram> {
+>>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
         let content = std::fs::read_to_string(&a_path)?;
 
         let mut program = BFProgram::new(a_path);
@@ -45,7 +65,11 @@ impl BFProgram {
                 match BFCommand::from_char(achar) {
                     Some(v) => {
                         let instruction = InputInstruction::new(v, line_num, col_num);
+<<<<<<< HEAD
                         program.add_cell(instruction);
+=======
+                        program.add_instruction(instruction);
+>>>>>>> 69366dabf2aa813158490e30dc39fbbd71101b2b
                     }
                     None => (),
                 }
