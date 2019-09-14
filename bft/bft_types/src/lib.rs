@@ -5,7 +5,7 @@ use std::string::String;
 use std::string::ToString;
 
 #[derive(Debug)]
-struct BFProgram {
+pub struct BFProgram {
     filename: PathBuf,
     instructions: Vec<InputInstruction>,
 }
@@ -58,7 +58,7 @@ impl BFProgram {
 }
 
 #[derive(Debug)]
-enum BFCommand {
+pub enum BFCommand {
     IncrementPointer(char),  //>
     DecrementPointer(char),  //<
     IncrementByte(char),     //+
@@ -86,7 +86,7 @@ impl BFCommand {
 }
 
 #[derive(Debug)]
-struct InputInstruction {
+pub struct InputInstruction {
     command: BFCommand,
     line_number: usize,
     column_number: usize,
@@ -99,6 +99,18 @@ impl InputInstruction {
             line_number,
             column_number,
         }
+    }
+
+    fn get_command(&self) -> &BFCommand {
+        &self.command
+    }
+
+    fn line_number(&self) -> usize {
+        self.line_number
+    }
+
+    fn column_number(&self) -> usize {
+        self.column_number
     }
 }
 
