@@ -1,6 +1,7 @@
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::io::Result;
+use std::fmt;
 
 
 #[derive(Debug)]
@@ -36,5 +37,15 @@ impl BFVirtualMachine {
         }
 
         Ok(false)
+    }
+}
+
+impl fmt::Display for BFVirtualMachine {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for instruct in self.program.cells().iter() {
+            write!(f, " {}\n", instruct)?;
+        }
+
+        write!(f, "End of Program")
     }
 }

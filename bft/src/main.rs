@@ -17,5 +17,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     println!("Current Cell: {}", virtual_machine.get_current_cell());
 
+    println!("---Virtual Machine---");
+    println!("{}", virtual_machine);
+    println!("---Virtual Machine---");
+
     Ok(())
 }
