@@ -17,3 +17,4 @@ members = [
 
 bft_interp = { version = "0.1.0", path = "bft_interp" }
 bft_types = { version = "0.1.0", path = "bft_types" }
+clap = "2.33.0"

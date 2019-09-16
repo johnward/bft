@@ -1,11 +1,17 @@
-use bft_types::BFProgram;
 use bft_interp::BFVirtualMachine;
-use std::env::args;
+use bft_types::BFProgram;
+//use std::env::args;
 use std::result::Result;
 
+mod cli;
 
-fn main() -> Result<(), Box<std::error::Error>> {
-    let filename = args().nth(1).ok_or("I need a filename")?;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    //let filename = args().nth(1).ok_or("I need a filename")?;
+
+    let (filename, cells_number) = cli::get_filename_and_cells();
+
+    println!("Filename {}", filename);
+    println!("Number of Cells: {}", cells_number);
 
     let program = BFProgram::from_file(filename).unwrap();
 
