@@ -12,7 +12,7 @@ This is your input file
           -[<<<]
          ]
         ]>>>-
-      ] 
+       ]
     
     I'm guessing that you know where we're going with all this
     

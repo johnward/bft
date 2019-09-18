@@ -1,7 +1,7 @@
 //! This is the types for the bf interpretor
-//! 
-//! 
-//! 
+//!
+//!
+//!
 //! _Woop Again_
 //! ==========
 
@@ -12,7 +12,7 @@ use std::string::String;
 use std::string::ToString;
 
 #[derive(Debug)]
-/// This is a struct containing: 
+/// This is a struct containing:
 /// * The BrainFuck commands in a Vector
 /// * The filename of which they were read from
 pub struct BFProgram {
@@ -22,7 +22,7 @@ pub struct BFProgram {
 
 impl BFProgram {
     /// Create a new BFProgram
-    /// 
+    ///
     pub fn new<T: AsRef<Path>>(a_path: T) -> BFProgram {
         BFProgram {
             filename: a_path.as_ref().to_path_buf(),
@@ -30,7 +30,7 @@ impl BFProgram {
         }
     }
 
-    /// Return the filename 
+    /// Return the filename
     pub fn filename(&self) -> &PathBuf {
         &self.filename
     }
@@ -51,7 +51,7 @@ impl BFProgram {
     }
 
     /// Create a new BFProgram from a file
-    /// 
+    ///
     pub fn from_file<T: AsRef<Path>>(a_path: T) -> Result<BFProgram> {
         let content = std::fs::read_to_string(&a_path)?;
 
@@ -94,46 +94,22 @@ pub enum BFCommand {
 impl BFCommand {
     fn from_char(raw_command: char) -> Option<BFCommand> {
         match raw_command {
-            '>' => {
-                //println!(">");
-                Some(BFCommand::IncrementPointer(raw_command))
-            },
-            '<' => {
-                //println!("<");
-                Some(BFCommand::DecrementPointer(raw_command))
-            },
-            '+' => {
-                //println!("+");
-                Some(BFCommand::IncrementByte(raw_command))
-            },
-            '-' => {
-                //println!("-");
-                Some(BFCommand::DecrementByte(raw_command))
-            },
-            '.' => {
-                //println!(".");
-                Some(BFCommand::OutputByte(raw_command))
-            },
-            ',' => {
-                //println!(",");
-                Some(BFCommand::InputByte(raw_command))
-            },
-            '[' => {
-                //println!("[");
-                Some(BFCommand::IfZeroJumpForward(raw_command))
-            },
-            ']' => {
-                //println!("]");
-                Some(BFCommand::IfNonZeroJumpBack(raw_command))
-            },
+            '>' => Some(BFCommand::IncrementPointer(raw_command)),
+            '<' => Some(BFCommand::DecrementPointer(raw_command)),
+            '+' => Some(BFCommand::IncrementByte(raw_command)),
+            '-' => Some(BFCommand::DecrementByte(raw_command)),
+            '.' => Some(BFCommand::OutputByte(raw_command)),
+            ',' => Some(BFCommand::InputByte(raw_command)),
+            '[' => Some(BFCommand::IfZeroJumpForward(raw_command)),
+            ']' => Some(BFCommand::IfNonZeroJumpBack(raw_command)),
             _ => None,
         }
     }
 }
 
 #[derive(Debug)]
-/// Struct to represent an Brainfuck command, 
-/// line number 
+/// Struct to represent an Brainfuck command,
+/// line number
 /// column number
 pub struct InputInstruction {
     command: BFCommand,
@@ -165,6 +141,20 @@ impl InputInstruction {
     pub fn column_number(&self) -> usize {
         self.column_number
     }
+
+    pub fn get_raw_command(&self) -> Option<String> {
+        match self.command {
+            BFCommand::IncrementPointer('>') => Some(">".to_string()),
+            BFCommand::DecrementPointer('<') => Some("<".to_string()),
+            BFCommand::IncrementByte('+') => Some("+".to_string()),
+            BFCommand::DecrementByte('-') => Some("-".to_string()),
+            BFCommand::OutputByte('.') => Some(".".to_string()),
+            BFCommand::InputByte(',') => Some(",".to_string()),
+            BFCommand::IfZeroJumpForward('[') => Some("[".to_string()),
+            BFCommand::IfNonZeroJumpBack(']') => Some("]".to_string()),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for InputInstruction {
@@ -180,27 +170,26 @@ impl fmt::Display for InputInstruction {
 }
 
 fn get_raw_command(a_bfcommand: &BFCommand) -> Option<String> {
-        match a_bfcommand {
-            BFCommand::IncrementPointer('>') => Some(">".to_string()),
-            BFCommand::DecrementPointer('<') => Some("<".to_string()),
-            BFCommand::IncrementByte('+') => Some("+".to_string()),
-            BFCommand::DecrementByte('-') => Some("-".to_string()),
-            BFCommand::OutputByte('.') => Some(".".to_string()),
-            BFCommand::InputByte(',') => Some(",".to_string()),
-            BFCommand::IfZeroJumpForward('[') => Some("[".to_string()),
-            BFCommand::IfNonZeroJumpBack(']') => Some("]".to_string()),
-            _ => None,
-        }
+    match a_bfcommand {
+        BFCommand::IncrementPointer('>') => Some(">".to_string()),
+        BFCommand::DecrementPointer('<') => Some("<".to_string()),
+        BFCommand::IncrementByte('+') => Some("+".to_string()),
+        BFCommand::DecrementByte('-') => Some("-".to_string()),
+        BFCommand::OutputByte('.') => Some(".".to_string()),
+        BFCommand::InputByte(',') => Some(",".to_string()),
+        BFCommand::IfZeroJumpForward('[') => Some("[".to_string()),
+        BFCommand::IfNonZeroJumpBack(']') => Some("]".to_string()),
+        _ => None,
     }
+}
 
 #[cfg(test)]
 mod tests {
-    use super::BFProgram;
     use super::BFCommand;
+    use super::BFProgram;
     use std::env;
     #[test]
     fn value_is_correct() {
-
         let mut path = env::current_dir().unwrap();
 
         path.set_file_name("inputbf.txt");
@@ -210,19 +199,18 @@ mod tests {
         let mut program_is_valid = true;
 
         for cell in program.cells() {
-
             let a_bfcommand: &BFCommand = cell.get_command();
 
             if program_is_valid {
                 program_is_valid = match a_bfcommand {
-                    BFCommand::IncrementPointer('>')   => true,
-                    BFCommand::DecrementPointer('<')   => true,
-                    BFCommand::IncrementByte('+')      => true,
-                    BFCommand::DecrementByte('-')      => true,
-                    BFCommand::OutputByte('.')         => true,
-                    BFCommand::InputByte(',')          => true,
-                    BFCommand::IfZeroJumpForward('[')  => true,
-                    BFCommand::IfNonZeroJumpBack(']')  => true,
+                    BFCommand::IncrementPointer('>') => true,
+                    BFCommand::DecrementPointer('<') => true,
+                    BFCommand::IncrementByte('+') => true,
+                    BFCommand::DecrementByte('-') => true,
+                    BFCommand::OutputByte('.') => true,
+                    BFCommand::InputByte(',') => true,
+                    BFCommand::IfZeroJumpForward('[') => true,
+                    BFCommand::IfNonZeroJumpBack(']') => true,
                     _ => false,
                 }
             }

@@ -27,5 +27,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", virtual_machine);
     println!("---Virtual Machine---");
 
+    let balanced = virtual_machine.has_matching_brackets().unwrap();
+
+    println!("Has Matching Brackets: {}", balanced);
+
     Ok(())
 }
