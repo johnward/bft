@@ -1,7 +1,7 @@
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
-use std::io::Result;
+use std::result::Result;
 use std::vec::Vec;
 
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub struct BFVirtualMachine {
     can_grow: bool,
     cell_idx: usize,
     tape_size: usize,
-    stack: Vec<String>,
+    stack: Vec<InputInstruction>,
 }
 
 impl BFVirtualMachine {
@@ -32,7 +32,7 @@ impl BFVirtualMachine {
         self.cell_idx += 1;
     }
 
-    pub fn grow_tape_size_to(&mut self, size: usize) -> Result<bool> {
+    pub fn grow_tape_size_to(&mut self, size: usize) -> Result<bool, Box<dyn std::error::Error>> {
         if self.can_grow && size > self.tape_size {
             self.tape_size = size;
             return Ok(true);
@@ -41,9 +41,9 @@ impl BFVirtualMachine {
         Ok(false)
     }
 
-    pub fn has_matching_brackets(&mut self) -> Result<bool> {
+    pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
         let mut balanced = true;
-        let mut local_stack: Vec<String> = Vec::new();
+        let mut local_stack: Vec<&InputInstruction> = Vec::new();
 
         for bfinstruction in self.program.cells().iter() {
             if !balanced {
@@ -52,21 +52,27 @@ impl BFVirtualMachine {
 
             let a_char: String = bfinstruction.get_raw_command().unwrap();
             if a_char == "[" {
-                local_stack.push(a_char);
+                local_stack.push(bfinstruction);
             } else if a_char == "]" {
                 if local_stack.is_empty() {
                     balanced = false;
+                    println!("Bracket Error {}", bfinstruction);
                 } else {
                     local_stack.pop();
                 }
             }
         }
 
-        if balanced && local_stack.is_empty() {
-            return Ok(true);
+        if !balanced || !local_stack.is_empty() {
+            if !local_stack.is_empty() {
+                let instruct: &InputInstruction = local_stack.pop().unwrap();
+                println!("Bracket Error {}", instruct);
+            }
+
+            return Ok(false);
         }
 
-        Ok(false)
+        Ok(true)
     }
 }
 

@@ -161,7 +161,7 @@ impl fmt::Display for InputInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "[{}, {}] {}",
+            "[Line {}, Col {}] {}",
             self.line_number,
             self.column_number,
             get_raw_command(&self.command).unwrap()
