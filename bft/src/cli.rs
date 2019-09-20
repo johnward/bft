@@ -25,10 +25,8 @@ pub fn get_filename_and_cells() -> (String, usize) {
     let mut cell_size = 30000;
     let cells = matches.value_of("cells").unwrap();
 
-    if cells.parse::<usize>().is_ok() {
-        if cells.parse::<usize>().unwrap() > cell_size {
-            cell_size = cells.parse::<usize>().unwrap();
-        }
+    if cells.parse::<usize>().is_ok() && cells.parse::<usize>().unwrap() > cell_size {
+        cell_size = cells.parse::<usize>().unwrap();
     }
 
     let program_name = String::from(matches.value_of("PROGRAM").unwrap_or("default.conf"));
