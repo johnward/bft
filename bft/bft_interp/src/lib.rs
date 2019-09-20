@@ -2,7 +2,7 @@ use bft_types::BFCommand;
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
-use std::io::Result;
+use std::result::Result;
 use std::vec::Vec;
 
 #[derive(Debug)]
@@ -38,9 +38,9 @@ where
         self.cell_idx += 1;
     }
 
-    pub fn has_matching_brackets(&mut self) -> Result<bool> {
+    pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
         let mut balanced = true;
-        let mut local_stack: Vec<char> = Vec::new();
+        let mut local_stack: Vec<&InputInstruction> = Vec::new();
 
         for bfinstruction in self.program.commands().iter() {
             if !balanced {
@@ -49,21 +49,27 @@ where
 
             let a_char: char = BFCommand::to_char(bfinstruction.get_command());
             if a_char == '[' {
-                local_stack.push(a_char);
+                local_stack.push(bfinstruction);
             } else if a_char == ']' {
                 if local_stack.is_empty() {
                     balanced = false;
+                    println!("Bracket Error {}", bfinstruction);
                 } else {
                     local_stack.pop();
                 }
             }
         }
 
-        if balanced && local_stack.is_empty() {
-            return Ok(true);
+        if !balanced || !local_stack.is_empty() {
+            if !local_stack.is_empty() {
+                let instruct: &InputInstruction = local_stack.pop().unwrap();
+                println!("Bracket Error {}", instruct);
+            }
+
+            return Ok(false);
         }
 
-        Ok(false)
+        Ok(true)
     }
 }
 
