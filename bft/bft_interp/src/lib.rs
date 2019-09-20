@@ -1,3 +1,4 @@
+use bft_types::BFCommand;
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
@@ -5,55 +6,51 @@ use std::io::Result;
 use std::vec::Vec;
 
 #[derive(Debug)]
-pub struct BFVirtualMachine {
+pub struct BFVirtualMachine<T> {
     program: BFProgram,
     can_grow: bool,
     cell_idx: usize,
     tape_size: usize,
-    stack: Vec<String>,
+    tape: Vec<T>,
 }
 
-impl BFVirtualMachine {
-    pub fn new(a_program: BFProgram, can_grow: bool, tape_size: usize) -> BFVirtualMachine {
+impl<T> BFVirtualMachine<T>
+where
+    T: Default + Clone,
+{
+    pub fn new(a_program: BFProgram, can_grow: bool, tape_size: usize) -> BFVirtualMachine<T> {
+        let tape_size = if tape_size == 0 { 30000 } else { tape_size };
+        let tape: Vec<T> = std::iter::repeat(T::default()).take(tape_size).collect();
         BFVirtualMachine {
             program: a_program,
             can_grow,
             cell_idx: 0,
             tape_size,
-            stack: Vec::new(),
+            tape,
         }
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
-        self.program.get_cell(self.cell_idx)
+        self.program.get_command(self.cell_idx)
     }
 
     pub fn next(&mut self) {
         self.cell_idx += 1;
     }
 
-    pub fn grow_tape_size_to(&mut self, size: usize) -> Result<bool> {
-        if self.can_grow && size > self.tape_size {
-            self.tape_size = size;
-            return Ok(true);
-        }
-
-        Ok(false)
-    }
-
     pub fn has_matching_brackets(&mut self) -> Result<bool> {
         let mut balanced = true;
-        let mut local_stack: Vec<String> = Vec::new();
+        let mut local_stack: Vec<char> = Vec::new();
 
-        for bfinstruction in self.program.cells().iter() {
+        for bfinstruction in self.program.commands().iter() {
             if !balanced {
                 break;
             }
 
-            let a_char: String = bfinstruction.get_raw_command().unwrap();
-            if a_char == "[" {
+            let a_char: char = BFCommand::to_char(bfinstruction.get_command());
+            if a_char == '[' {
                 local_stack.push(a_char);
-            } else if a_char == "]" {
+            } else if a_char == ']' {
                 if local_stack.is_empty() {
                     balanced = false;
                 } else {
@@ -70,10 +67,10 @@ impl BFVirtualMachine {
     }
 }
 
-impl fmt::Display for BFVirtualMachine {
+impl<T> fmt::Display for BFVirtualMachine<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for instruct in self.program.cells().iter() {
-            write!(f, " {}\n", instruct)?;
+        for instruct in self.program.commands().iter() {
+            writeln!(f, " {}", instruct)?;
         }
 
         write!(f, "End of Program")
