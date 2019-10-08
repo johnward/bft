@@ -6,7 +6,6 @@ use std::result::Result;
 mod cli;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     let (filename, cells_number) = cli::get_filename_and_cells();
 
     println!("Filename {}", filename);
@@ -14,11 +13,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let program = BFProgram::new(filename);
 
-    let mut virtual_machine: BFVirtualMachine<u8> = BFVirtualMachine::new(program, false, 30000);
+    let mut virtual_machine: BFVirtualMachine<u8> =
+        BFVirtualMachine::new(program.commands(), false, 30000);
 
     println!("Current Cell: {}", virtual_machine.get_current_cell());
 
-    virtual_machine.next();
+    let interp = virtual_machine.move_head_right();
+
+    match interp {
+        Ok(()) => println!("It's OK!!!"),
+        Err(_e) => println!("It's Not OK"),
+    }
+
+    println!("Current Cell: {}", virtual_machine.get_current_cell());
+
+    let interp = virtual_machine.move_head_right();
+
+    match interp {
+        Ok(()) => println!("It's OK!!!"),
+        Err(_e) => println!("It's Not OK"),
+    }
 
     println!("Current Cell: {}", virtual_machine.get_current_cell());
 
