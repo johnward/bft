@@ -5,8 +5,33 @@ use std::fmt;
 use std::result::Result;
 use std::vec::Vec;
 
+pub trait CellKind {
+    fn wrapping_add(&mut self, num: u8);
+
+    fn wrapping_sub(&mut self, num: u8);
+}
+
+impl CellKind for u8 {
+    fn wrapping_add(&mut self, num: u8) {
+        if let Some(n) = self.checked_add(num) {
+            *self = n;
+        } else {
+            *self = num - (u8::max_value() - *self);
+        }
+    }
+
+    fn wrapping_sub(&mut self, num: u8) {
+        if let Some(n) = self.checked_sub(num) {
+            *self = n;
+        } else {
+            *self = u8::max_value() - (num - *self);
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum VMError {
+    NoError(InputInstruction),
     InvalidHeadPosition(InputInstruction),
     TapeTooBig(InputInstruction),
 }
@@ -14,15 +39,16 @@ pub enum VMError {
 #[derive(Debug)]
 pub struct BFVirtualMachine<'a, T> {
     program: &'a Vec<InputInstruction>,
-    can_grow: bool,
     program_counter: usize,
+    can_grow: bool,
+    tape_pointer: usize,
     tape_size: usize,
     tape: Vec<T>,
 }
 
 impl<'a, T> BFVirtualMachine<'a, T>
 where
-    T: Default + Clone,
+    T: Default + Clone + CellKind,
 {
     pub fn new(
         a_program: &Vec<InputInstruction>,
@@ -33,37 +59,46 @@ where
         let tape: Vec<T> = std::iter::repeat(T::default()).take(tape_size).collect();
         BFVirtualMachine {
             program: a_program,
-            can_grow,
             program_counter: 0,
+            can_grow,
+            tape_pointer: 0,
             tape_size,
             tape,
         }
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
-        &self.program[self.program_counter]
+        &self.program[self.tape_pointer]
     }
 
     pub fn move_head_left(&mut self) -> Result<(), VMError> {
-        if self.program_counter > 0 {
-            self.program_counter -= 1;
+        if self.tape_pointer > 0 {
+            self.tape_pointer -= 1;
             Ok(())
         } else {
             Err(VMError::InvalidHeadPosition(
-                self.program[self.program_counter],
+                self.program[self.tape_pointer], // this needs changing
             ))
         }
     }
 
     pub fn move_head_right(&mut self) -> Result<(), VMError> {
-        if self.program_counter < (self.tape_size - 1) {
-            self.program_counter += 1;
+        if self.tape_pointer < (self.tape_size - 1) {
+            self.tape_pointer += 1;
             Ok(())
         } else {
             Err(VMError::InvalidHeadPosition(
-                self.program[self.program_counter],
+                self.program[self.tape_pointer],
             ))
         }
+    }
+
+    pub fn wrapped_add(&mut self, num: u8) {
+        self.tape[self.tape_pointer].wrapping_add(num);
+    }
+
+    pub fn wrapped_sub(&mut self, num: u8) {
+        self.tape[self.tape_pointer].wrapping_sub(num);
     }
 
     pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
@@ -115,6 +150,7 @@ impl<'a, T> fmt::Display for BFVirtualMachine<'a, T> {
 mod tests {
     use super::BFProgram;
     use super::BFVirtualMachine;
+    use super::CellKind;
     use bft_types::BFCommand;
     use std::env;
 
@@ -199,5 +235,47 @@ mod tests {
         let instruction = virtual_machine.get_current_cell();
 
         assert_eq!(BFCommand::to_char(instruction.get_command()), '[');
+    }
+
+    #[test]
+    fn test_add_u8() {
+        let mut aa: u8 = 25;
+        assert_eq!(aa, 25);
+
+        aa.wrapping_add(25);
+
+        assert_eq!(aa, 50);
+    }
+
+    #[test]
+    fn test_subtract_u8() {
+        let mut aa: u8 = 25;
+        assert_eq!(aa, 25);
+
+        aa.wrapping_sub(25);
+
+        assert_eq!(aa, 0);
+    }
+
+    #[test]
+    fn test_add_wrap_u8() {
+        let mut aa: u8 = 240;
+        assert_eq!(aa, 240);
+
+        aa.wrapping_add(50);
+        println!("aa {}", aa);
+
+        assert_eq!(aa, 35);
+    }
+
+    #[test]
+    fn test_substract_wrap_u8() {
+        let mut aa: u8 = 20;
+        assert_eq!(aa, 20);
+
+        aa.wrapping_sub(50);
+        println!("aa {}", aa);
+
+        assert_eq!(aa, 225);
     }
 }
