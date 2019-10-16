@@ -6,7 +6,6 @@ use std::result::Result;
 mod cli;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     let (filename, cells_number) = cli::get_filename_and_cells();
 
     println!("Filename {}", filename);
