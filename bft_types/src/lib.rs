@@ -109,10 +109,11 @@ impl BFCommand {
     }
 }
 
-#[derive(Debug)]
+
 /// Struct to represent an Brainfuck command,
 /// line number
 /// column number
+#[derive(Debug, Clone, Copy)]
 pub struct InputInstruction {
     command: BFCommand,
     line_number: usize,
