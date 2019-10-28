@@ -1,0 +1,95 @@
+Session 5 homework
+==================
+
+As with session 4, this session's homework is entirely focussed on your `bft`
+project.  Like in session 4, a lot of the detail will be left up to you.  At
+the end of this session's homework, your `bft` tool will be closer to
+interpreting the hello-world program which we have been carrying around since
+session 1.
+
+This is a large amount of work and you are not expected to necessarily complete
+it within an hour.  You have a few weeks to get all of this done, but don't
+leave it to the last minute, it won't be trivial to do.
+
+As I will be away a lot in the next couple of weeks, if you have questions, you
+can email them to me, or ask me on IRC, but you MUST let me know on IRC if you
+email them as I won't be checking my work email very often.
+
+Task One - Shaking your head
+============================
+
+It's time - We're going to make our basic VM in `bft_interp` into a BF
+interpreter.  To do this we're going to need to extend our struct slightly.
+
+Firstly, you're going to want to add a member to the struct to represent the
+head location on the tape.  This should default to the first tape location
+(zero).
+
+This member will need some careful handling, at this point our interpreter
+could hit a runtime error (e.g. the head falling off either end of the tape).
+
+Add an enumeration to your `bft_interp` crate which will be the errors returned
+by the VM.  I suggest that the first variant should be for the head being moved
+to an invalid position (before zero, or after the last cell in a non
+auto-extending case).  It'd be helpful if the variant were constructed with the
+marked instruction which caused the problem, so we can report the error nicely.
+
+To make this possible to do, we're going to want to know the "program counter"
+for the VM, so add this to your struct as well, and notice that we'll need the
+program borrow in the struct as well.  Alter the `new` method to also take
+a borrow of a program, adjust your tests appropriately, and also the `main`
+function in `bft`.
+
+Now you can add a "Move Head Left" and "Move Head Right" pair of methods to
+your struct's impl block which do the requisite work on the head position
+member (so they need to take `&mut self`) and return something like a
+`Result<(), VMError>`
+
+Remember to add documentation and tests for these functions, testing both the
+success and the failure situations.
+
+Task Two - Traits and maths
+===========================
+
+Following the same pattern as for the move-left and move-right methods, add
+methods for incrementing and decrementing the values in the cells.  Since we're
+modelling a system where values wrap between 0 and the maximum unsigned integer
+for the type in question, you're going to want to use `wrapped_add` and
+`wrapped_sub` which might lead you to need to write a trait to provide wrapping
+increment and decrement, write an impl for u8 for that, and then add some more
+type constraints to the VM impl in order to make them available.
+
+Remember to write some tests, docs, etc, so that it's nice and clear what's
+going on.
+
+It's possible that `num` or a similar crate will have something which can do this
+for you, but for the purposes of this exercise I'm hoping you'll design a trait
+and implement it for u8 yourself.  It might be sensible to call it something
+such as `CellKind` and ensure it (initially) just has the `wrapping_increment()`
+`and wrapping_decrement()` methods mentioned above.  It may also be a good idea
+to make CellKind depend on Debug so that whatever constraints you have to add
+to your impl for your VM will automatically extend to providing Debug on your
+cells on the tape which will help for the tests you need to have written.
+
+Task Three - Basic I/O
+======================
+
+Now we want to add I/O.  We want to do this moderately generically in order
+that we can test these functions usefully.  As such, ensure that the function
+for reading into a cell takes any type which implements the Read trait and
+reads a single byte from that reader.  Note that since this will introduce IO
+errors into your system, you should add a variant to your `VMError` enumeration
+for IO errors.  It should take the IO error *and* the marked instruction.
+
+While you can wrapper up the IO error manually, it'd be nice to enable the
+use of the `?` operator on the `.read()` call by adding a From impl to convert
+from a `std::io::Error` to your `VMError` type.  Sadly this isn't easily done
+and so for this part of your homework, do a manual wrapper and add a comment in
+one or other of the input or output routines explaining why you can't use `?`
+to do this.
+
+Your output function should take any Write impl, and do similarly.
+
+Remember that your functions need documentation and also tests.  You can use
+the `std::io::Cursor<Vec<u8>>` type to provide readers and writers for the
+purpose of testing your input and output functions.

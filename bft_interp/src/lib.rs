@@ -2,6 +2,7 @@ use bft_types::BFCommand;
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
+use std::io::Read;
 use std::result::Result;
 use std::vec::Vec;
 
@@ -34,6 +35,7 @@ pub enum VMError {
     NoError(InputInstruction),
     InvalidHeadPosition(InputInstruction),
     TapeTooBig(InputInstruction),
+    IOError(InputInstruction),
 }
 
 #[derive(Debug)]
@@ -65,6 +67,15 @@ where
             tape_size,
             tape,
         }
+    }
+
+    pub fn write_to_cell(&self, reader: impl Read) -> Result<(), VMError> {
+        //*self.tape[self.tape_pointer] = value;
+
+        let mut buffer = [0; 1];
+        reader.read(&mut buffer);
+
+        Ok(())
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
