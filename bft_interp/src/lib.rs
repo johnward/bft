@@ -3,6 +3,7 @@ use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
 use std::io::Read;
+use std::io::Write;
 use std::result::Result;
 use std::vec::Vec;
 
@@ -35,7 +36,8 @@ pub enum VMError {
     NoError(InputInstruction),
     InvalidHeadPosition(InputInstruction),
     TapeTooBig(InputInstruction),
-    IOError(InputInstruction),
+    IOReadError(InputInstruction),
+    IOWriteError(InputInstruction),
 }
 
 #[derive(Debug)]
@@ -69,12 +71,17 @@ where
         }
     }
 
-    pub fn write_to_cell(&self, reader: impl Read) -> Result<(), VMError> {
+    pub fn read(&self, _reader: impl Read) -> Result<(), VMError> {
         //*self.tape[self.tape_pointer] = value;
 
-        let mut buffer = [0; 1];
-        reader.read(&mut buffer);
+        //let mut buffer = [0; 1];
+        //reader.read(&mut buffer);
 
+        Ok(())
+    }
+
+
+    pub fn write(&self, _writer: impl Write) -> Result<(), VMError> {
         Ok(())
     }
 
