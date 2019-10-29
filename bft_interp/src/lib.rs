@@ -71,18 +71,23 @@ where
         }
     }
 
-    pub fn read(&self, _reader: impl Read) -> Result<(), VMError> {
-        //*self.tape[self.tape_pointer] = value;
+    pub fn read(&self, reader: &mut impl Read) -> Result<usize, VMError> {
 
-        //let mut buffer = [0; 1];
-        //reader.read(&mut buffer);
+        let mut buffer = [0u8; 1];
 
-        Ok(())
+        match reader.read(&mut buffer){
+            Ok(s) => {
+                self.tape.insert(self.tape_pointer, buffer[0]);
+                Ok(s)
+                },
+            Err(_) => Err(VMError::IOReadError),
+        }
+
     }
 
 
-    pub fn write(&self, _writer: impl Write) -> Result<(), VMError> {
-        Ok(())
+    pub fn write(&self, _writer: &mut impl Write) -> Result<usize, VMError> {
+        Ok(20)
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
