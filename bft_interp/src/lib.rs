@@ -1,3 +1,10 @@
+//! This is the BrainFuck interpreter
+//!
+//!
+//!
+//! This is a fully working Brainfuck interpretor
+//! =============================================
+
 use bft_types::BFCommand;
 use bft_types::BFProgram;
 use bft_types::InputInstruction;
@@ -7,12 +14,18 @@ use std::io::Write;
 use std::result::Result;
 use std::vec::Vec;
 
+/// This trait is for wrapping the u8 value
+/// This trait covers add and subtract
+///
+/// ========================================
+///
 pub trait CellKind {
     fn wrapping_add(&mut self, num: u8);
 
     fn wrapping_sub(&mut self, num: u8);
 }
 
+/// Implementation for tje CellKind Trait
 impl CellKind for u8 {
     fn wrapping_add(&mut self, num: u8) {
         if let Some(n) = self.checked_add(num) {
@@ -31,6 +44,7 @@ impl CellKind for u8 {
     }
 }
 
+/// Error enum
 #[derive(Debug, Clone, Copy)]
 pub enum VMError {
     NoError(InputInstruction),
@@ -47,7 +61,7 @@ pub struct BFVirtualMachine<'a, T> {
     can_grow: bool,
     tape_pointer: usize,
     tape_size: usize,
-    tape: Vec<T>,
+    tape: Vec<u8>,
 }
 
 impl<'a, T> BFVirtualMachine<'a, T>
@@ -60,7 +74,7 @@ where
         tape_size: usize,
     ) -> BFVirtualMachine<T> {
         let tape_size = if tape_size == 0 { 30000 } else { tape_size };
-        let tape: Vec<T> = std::iter::repeat(T::default()).take(tape_size).collect();
+        let tape: Vec<u8> = std::iter::repeat(T::default()).take(tape_size).collect();
         BFVirtualMachine {
             program: a_program,
             program_counter: 0,
@@ -72,22 +86,28 @@ where
     }
 
     pub fn read(&self, reader: &mut impl Read) -> Result<usize, VMError> {
-
         let mut buffer = [0u8; 1];
 
-        match reader.read(&mut buffer){
+        let instruct = self.program[self.program_counter];
+
+        match reader.read(&mut buffer) {
             Ok(s) => {
                 self.tape.insert(self.tape_pointer, buffer[0]);
                 Ok(s)
-                },
-            Err(_) => Err(VMError::IOReadError),
+            }
+            Err(_) => Err(VMError::IOReadError(instruct)),
         }
-
     }
 
+    pub fn write(&self, writer: &mut impl Write) -> Result<usize, VMError> {
+        let mut buffer = [0u8; 1];
+        let instruct = self.program[self.program_counter];
+        buffer[0] = self.tape[self.tape_pointer];
 
-    pub fn write(&self, _writer: &mut impl Write) -> Result<usize, VMError> {
-        Ok(20)
+        match writer.write(&buffer) {
+            Ok(s) => Ok(s),
+            Err(_) => Err(VMError::IOWriteError(instruct)),
+        }
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
