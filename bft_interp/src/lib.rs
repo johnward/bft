@@ -6,7 +6,6 @@
 //! =============================================
 
 use bft_types::BFCommand;
-use bft_types::BFProgram;
 use bft_types::InputInstruction;
 use std::fmt;
 use std::io::Read;
@@ -61,12 +60,13 @@ pub struct BFVirtualMachine<'a, T> {
     can_grow: bool,
     tape_pointer: usize,
     tape_size: usize,
-    tape: Vec<u8>,
+    tape: Vec<T>,
 }
 
 impl<'a, T> BFVirtualMachine<'a, T>
 where
-    T: Default + Clone + CellKind,
+    T: Default + Clone + Copy + CellKind + std::convert::From<u8>,
+    u8: std::convert::From<T>,
 {
     pub fn new(
         a_program: &Vec<InputInstruction>,
@@ -74,7 +74,7 @@ where
         tape_size: usize,
     ) -> BFVirtualMachine<T> {
         let tape_size = if tape_size == 0 { 30000 } else { tape_size };
-        let tape: Vec<u8> = std::iter::repeat(T::default()).take(tape_size).collect();
+        let tape: Vec<T> = std::iter::repeat(T::default()).take(tape_size).collect();
         BFVirtualMachine {
             program: a_program,
             program_counter: 0,
@@ -82,31 +82,6 @@ where
             tape_pointer: 0,
             tape_size,
             tape,
-        }
-    }
-
-    pub fn read(&self, reader: &mut impl Read) -> Result<usize, VMError> {
-        let mut buffer = [0u8; 1];
-
-        let instruct = self.program[self.program_counter];
-
-        match reader.read(&mut buffer) {
-            Ok(s) => {
-                self.tape.insert(self.tape_pointer, buffer[0]);
-                Ok(s)
-            }
-            Err(_) => Err(VMError::IOReadError(instruct)),
-        }
-    }
-
-    pub fn write(&self, writer: &mut impl Write) -> Result<usize, VMError> {
-        let mut buffer = [0u8; 1];
-        let instruct = self.program[self.program_counter];
-        buffer[0] = self.tape[self.tape_pointer];
-
-        match writer.write(&buffer) {
-            Ok(s) => Ok(s),
-            Err(_) => Err(VMError::IOWriteError(instruct)),
         }
     }
 
@@ -177,6 +152,31 @@ where
 
         Ok(true)
     }
+
+    pub fn read(&mut self, reader: &mut impl Read) -> Result<usize, VMError> {
+        let mut buffer: [u8; 1] = [0u8; 1];
+
+        let instruct = self.program[self.program_counter];
+
+        match reader.read(&mut buffer) {
+            Ok(s) => {
+                self.tape.insert(self.tape_pointer, buffer[0].into());
+                Ok(s)
+            }
+            Err(_) => Err(VMError::IOReadError(instruct)),
+        }
+    }
+
+    pub fn write(&mut self, writer: &mut impl Write) -> Result<usize, VMError> {
+        let mut buffer: [u8; 1] = [0u8; 1];
+        let instruct = self.program[self.program_counter];
+        buffer[0] = self.tape[self.tape_pointer].into();
+
+        match writer.write(&buffer) {
+            Ok(s) => Ok(s),
+            Err(_) => Err(VMError::IOWriteError(instruct)),
+        }
+    }
 }
 
 impl<'a, T> fmt::Display for BFVirtualMachine<'a, T> {
@@ -191,10 +191,9 @@ impl<'a, T> fmt::Display for BFVirtualMachine<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::BFProgram;
     use super::BFVirtualMachine;
-    use super::CellKind;
     use bft_types::BFCommand;
+    use bft_types::BFProgram;
     use std::env;
 
     #[test]
