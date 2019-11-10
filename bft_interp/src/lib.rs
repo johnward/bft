@@ -19,26 +19,26 @@ use std::vec::Vec;
 /// ========================================
 ///
 pub trait CellKind {
-    fn wrapping_add(&mut self, num: u8);
+    fn wrapping_add(&mut self, number_to_add: u8);
 
-    fn wrapping_sub(&mut self, num: u8);
+    fn wrapping_sub(&mut self, number_to_sub: u8);
 }
 
 /// Implementation for tje CellKind Trait
 impl CellKind for u8 {
-    fn wrapping_add(&mut self, num: u8) {
-        if let Some(n) = self.checked_add(num) {
+    fn wrapping_add(&mut self, number_to_add: u8) {
+        if let Some(n) = self.checked_add(number_to_add) {
             *self = n;
         } else {
-            *self = num - (u8::max_value() - *self);
+            *self = number_to_add - (u8::max_value() - *self);
         }
     }
 
-    fn wrapping_sub(&mut self, num: u8) {
-        if let Some(n) = self.checked_sub(num) {
+    fn wrapping_sub(&mut self, number_to_sub: u8) {
+        if let Some(n) = self.checked_sub(number_to_sub) {
             *self = n;
         } else {
-            *self = u8::max_value() - (num - *self);
+            *self = u8::max_value() - (number_to_sub - *self);
         }
     }
 }
@@ -281,10 +281,11 @@ mod tests {
 
     #[test]
     fn test_add_u8() {
-        let mut aa: u8 = 25;
+        let aa: u8 = 25;
         assert_eq!(aa, 25);
 
         aa.wrapping_add(25);
+        println!("aa {}", aa);
 
         assert_eq!(aa, 50);
     }
@@ -295,29 +296,30 @@ mod tests {
         assert_eq!(aa, 25);
 
         aa.wrapping_sub(25);
+        println!("aa {}", aa);
 
         assert_eq!(aa, 0);
     }
 
     #[test]
     fn test_add_wrap_u8() {
-        let mut aa: u8 = 240;
-        assert_eq!(aa, 240);
+        let mut aa: u8 = 245;
+        assert_eq!(aa, 245);
 
-        aa.wrapping_add(50);
+        aa.wrapping_add(20);
         println!("aa {}", aa);
 
-        assert_eq!(aa, 35);
+        assert_eq!(aa, 10);
     }
 
     #[test]
     fn test_substract_wrap_u8() {
-        let mut aa: u8 = 20;
-        assert_eq!(aa, 20);
+        let mut aa: u8 = 8;
+        assert_eq!(aa, 8);
 
-        aa.wrapping_sub(50);
+        aa.wrapping_sub(20);
         println!("aa {}", aa);
 
-        assert_eq!(aa, 225);
+        assert_eq!(aa, 243);
     }
 }
