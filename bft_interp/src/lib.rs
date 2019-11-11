@@ -19,26 +19,31 @@ use std::vec::Vec;
 /// ========================================
 ///
 pub trait CellKind {
-    fn wrapping_add(&mut self, number_to_add: u8);
+    fn bft_wrapping_add(&mut self, number_to_add: u8) -> u8;
 
-    fn wrapping_sub(&mut self, number_to_sub: u8);
+    fn bft_wrapping_sub(&mut self, number_to_sub: u8) -> u8;
 }
 
-/// Implementation for tje CellKind Trait
+/// Implementation for the CellKind Trait
+/// number_to_add: This is the number to add to the U8
+///
+/// Return: This is old number plus number_to_add, which may be wrapped, if it is more that 255
 impl CellKind for u8 {
-    fn wrapping_add(&mut self, number_to_add: u8) {
+    fn bft_wrapping_add(&mut self, number_to_add: u8) -> u8 {
+        let current_number = *self;
         if let Some(n) = self.checked_add(number_to_add) {
-            *self = n;
+            n
         } else {
-            *self = number_to_add - (u8::max_value() - *self);
+            (number_to_add - ((u8::max_value() - current_number) + 1)) // + 1 to take into account the zero
         }
     }
 
-    fn wrapping_sub(&mut self, number_to_sub: u8) {
+    fn bft_wrapping_sub(&mut self, number_to_sub: u8) -> u8 {
+        let current_number = *self;
         if let Some(n) = self.checked_sub(number_to_sub) {
-            *self = n;
+            n
         } else {
-            *self = u8::max_value() - (number_to_sub - *self);
+            (u8::max_value() - ((number_to_sub - current_number) - 1)) // - 1 to take into account the zero
         }
     }
 }
@@ -112,11 +117,11 @@ where
     }
 
     pub fn wrapped_add(&mut self, num: u8) {
-        self.tape[self.tape_pointer].wrapping_add(num);
+        self.tape[self.tape_pointer].bft_wrapping_add(num);
     }
 
     pub fn wrapped_sub(&mut self, num: u8) {
-        self.tape[self.tape_pointer].wrapping_sub(num);
+        self.tape[self.tape_pointer].bft_wrapping_sub(num);
     }
 
     pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
@@ -192,6 +197,7 @@ impl<'a, T> fmt::Display for BFVirtualMachine<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::BFVirtualMachine;
+    use super::CellKind;
     use bft_types::BFCommand;
     use bft_types::BFProgram;
     use std::env;
@@ -281,10 +287,10 @@ mod tests {
 
     #[test]
     fn test_add_u8() {
-        let aa: u8 = 25;
+        let mut aa: u8 = 25;
         assert_eq!(aa, 25);
 
-        aa.wrapping_add(25);
+        aa = aa.wrapping_add(25);
         println!("aa {}", aa);
 
         assert_eq!(aa, 50);
@@ -295,7 +301,7 @@ mod tests {
         let mut aa: u8 = 25;
         assert_eq!(aa, 25);
 
-        aa.wrapping_sub(25);
+        aa = aa.wrapping_sub(25);
         println!("aa {}", aa);
 
         assert_eq!(aa, 0);
@@ -303,23 +309,28 @@ mod tests {
 
     #[test]
     fn test_add_wrap_u8() {
-        let mut aa: u8 = 245;
-        assert_eq!(aa, 245);
+        let mut aa: u8 = 252;
+        assert_eq!(aa, 252);
+        println!("Max Value:{}", u8::max_value());
 
-        aa.wrapping_add(20);
+        let number_to_add: u8 = 7;
+        let new_num = number_to_add - (u8::max_value() - aa);
+        println!("New Num: {}", new_num);
+
+        aa = aa.bft_wrapping_add(number_to_add);
         println!("aa {}", aa);
 
-        assert_eq!(aa, 10);
+        assert_eq!(aa, 3);
     }
 
     #[test]
     fn test_substract_wrap_u8() {
-        let mut aa: u8 = 8;
-        assert_eq!(aa, 8);
+        let mut aa: u8 = 4;
+        assert_eq!(aa, 4);
 
-        aa.wrapping_sub(20);
+        aa = aa.bft_wrapping_sub(6);
         println!("aa {}", aa);
 
-        assert_eq!(aa, 243);
+        assert_eq!(aa, 254);
     }
 }
