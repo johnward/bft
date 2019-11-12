@@ -170,7 +170,7 @@ where
         Ok(true)
     }
 
-    pub fn read(&mut self, reader: &mut impl Read) -> Result<usize, VMError> {
+    pub fn input(&mut self, reader: &mut impl Read) -> Result<usize, VMError> {
         let mut buffer: [u8; 1] = [0u8; 1];
 
         let instruct = self.program[self.program_counter];
@@ -184,7 +184,7 @@ where
         }
     }
 
-    pub fn write(&mut self, writer: &mut impl Write) -> Result<usize, VMError> {
+    pub fn output(&mut self, writer: &mut impl Write) -> Result<usize, VMError> {
         let mut buffer: [u8; 1] = [0u8; 1];
         let instruct = self.program[self.program_counter];
         buffer[0] = self.tape[self.tape_pointer].into();
