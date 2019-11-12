@@ -19,9 +19,9 @@ use std::vec::Vec;
 /// ========================================
 ///
 pub trait CellKind {
-    fn bft_wrapping_add(&mut self, number_to_add: u8) -> u8;
+    fn wrapping_increment(&mut self, number_to_add: u8) -> u8;
 
-    fn bft_wrapping_sub(&mut self, number_to_sub: u8) -> u8;
+    fn wrapping_decrement(&mut self, number_to_sub: u8) -> u8;
 }
 
 /// Implementation for the CellKind Trait
@@ -29,7 +29,7 @@ pub trait CellKind {
 ///
 /// Return: This is old number plus number_to_add, which may be wrapped, if it is more that 255
 impl CellKind for u8 {
-    fn bft_wrapping_add(&mut self, number_to_add: u8) -> u8 {
+    fn wrapping_increment(&mut self, number_to_add: u8) -> u8 {
         let current_number = *self;
         if let Some(n) = self.checked_add(number_to_add) {
             n
@@ -38,7 +38,7 @@ impl CellKind for u8 {
         }
     }
 
-    fn bft_wrapping_sub(&mut self, number_to_sub: u8) -> u8 {
+    fn wrapping_decrement(&mut self, number_to_sub: u8) -> u8 {
         let current_number = *self;
         if let Some(n) = self.checked_sub(number_to_sub) {
             n
@@ -117,11 +117,11 @@ where
     }
 
     pub fn wrapped_add(&mut self, num: u8) {
-        self.tape[self.tape_pointer].bft_wrapping_add(num);
+        self.tape[self.tape_pointer].wrapping_increment(num);
     }
 
     pub fn wrapped_sub(&mut self, num: u8) {
-        self.tape[self.tape_pointer].bft_wrapping_sub(num);
+        self.tape[self.tape_pointer].wrapping_decrement(num);
     }
 
     pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
@@ -290,7 +290,7 @@ mod tests {
         let mut aa: u8 = 25;
         assert_eq!(aa, 25);
 
-        aa = aa.wrapping_add(25);
+        aa = aa.wrapping_increment(25);
         println!("aa {}", aa);
 
         assert_eq!(aa, 50);
@@ -301,7 +301,7 @@ mod tests {
         let mut aa: u8 = 25;
         assert_eq!(aa, 25);
 
-        aa = aa.wrapping_sub(25);
+        aa = aa.wrapping_decrement(25);
         println!("aa {}", aa);
 
         assert_eq!(aa, 0);
@@ -317,7 +317,7 @@ mod tests {
         let new_num = number_to_add - (u8::max_value() - aa);
         println!("New Num: {}", new_num);
 
-        aa = aa.bft_wrapping_add(number_to_add);
+        aa = aa.wrapping_increment(number_to_add);
         println!("aa {}", aa);
 
         assert_eq!(aa, 3);
@@ -328,7 +328,7 @@ mod tests {
         let mut aa: u8 = 4;
         assert_eq!(aa, 4);
 
-        aa = aa.bft_wrapping_sub(6);
+        aa = aa.wrapping_decrement(6);
         println!("aa {}", aa);
 
         assert_eq!(aa, 254);
