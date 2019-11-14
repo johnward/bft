@@ -201,6 +201,7 @@ mod tests {
     use bft_types::BFCommand;
     use bft_types::BFProgram;
     use std::env;
+    use std::io::Cursor;
 
     #[test]
     fn first_instruction_valid() {
@@ -332,5 +333,45 @@ mod tests {
         println!("aa {}", aa);
 
         assert_eq!(aa, 254);
+    }
+
+    #[test]
+    fn test_read_write1() {
+        let mut buff = Cursor::new(vec![15]);
+
+        let mut path = env::current_dir().unwrap();
+
+        path.set_file_name("inputbf.txt");
+
+        let program = BFProgram::new(path);
+
+        let mut virtual_machine: BFVirtualMachine<u8> =
+            BFVirtualMachine::new(program.commands(), false, 30000);
+
+        match virtual_machine.write(&mut buff) {
+            // pass the borrow as mutable
+            Ok(s) => println!("Written {}", s),
+            Err(_e) => println!("Write Error"),
+        };
+    }
+
+    #[test]
+    fn test_read_write2() {
+        let mut buff = Cursor::new(vec![15]);
+
+        let mut path = env::current_dir().unwrap();
+
+        path.set_file_name("inputbf.txt");
+
+        let program = BFProgram::new(path);
+
+        let mut virtual_machine: BFVirtualMachine<u8> =
+            BFVirtualMachine::new(program.commands(), false, 30000);
+
+        match virtual_machine.write(&mut buff) {
+            // pass the borrow as mutable
+            Ok(s) => println!("Written {}", s),
+            Err(_e) => println!("Write Error"),
+        };
     }
 }
