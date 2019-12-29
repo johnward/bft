@@ -57,7 +57,11 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": [
+                "inputbf.txt",
+                "--cells",
+                "3000",
+            ],
             "cwd": "${workspaceFolder}"
         },
         {
