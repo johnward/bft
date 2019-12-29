@@ -2,7 +2,7 @@ extern crate clap;
 use clap::{App, Arg};
 
 pub fn get_filename_and_cells() -> (String, usize) {
-    let matches = App::new("My Super Program")
+    let matches = App::new("Brain Fuck Interpretor")
         .version("1.0")
         .author("John Ward <john@johnward.net>")
         .about("Does awesome things")

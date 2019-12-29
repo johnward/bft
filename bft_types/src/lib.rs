@@ -109,7 +109,6 @@ impl BFCommand {
     }
 }
 
-
 /// Struct to represent an Brainfuck command,
 /// line number
 /// column number

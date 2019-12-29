@@ -1,0 +1,37 @@
+
+
+
+Program Instructions
+Pointer
+
+
+Tape
+Pointer
+
+
+Types
+-----
+
+struct BFProgram
+
+enum BFCommand
+
+Struct InputInstruction
+
+
+
+Interp
+
+CellKind
+
+VMError
+
+BFVirtualMachine
+
+Display for BFVirtualMachine
+
+
+
+
+
+

@@ -50,7 +50,7 @@
                 "args": [
                     "build",
                     "--bin=bft",
-                    "--package=bft"
+                    "--package=bft",
                 ],
                 "filter": {
                     "name": "bft",
