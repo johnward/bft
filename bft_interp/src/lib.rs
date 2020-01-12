@@ -61,7 +61,7 @@ impl CellKind for u8 {
     }
 }
 
-#[derive(Debug)]
+/*#[derive(Debug)]
 pub struct Logger<W: Write> {
     out: W,
 }
@@ -81,7 +81,7 @@ impl<W: Write> Logger<W> {
     pub fn flush(&mut self) {
         self.out.flush().unwrap();
     }
-}
+}*/
 
 /// Error enum
 #[derive(Debug, Clone, Copy)]
@@ -91,6 +91,7 @@ pub enum VMError {
     TapeTooBig(InputInstruction),
     IOReadError(InputInstruction),
     IOWriteError(InputInstruction),
+    NestImbalance(InputInstruction),
 }
 
 #[derive(Debug)]
@@ -119,6 +120,14 @@ where
             tape_size,
             tape,
         }
+    }
+
+    pub fn interpret<R, W>(&mut self, input: R, output: W) -> Result<(), VMError>
+    where
+        R: Read,
+        W: Write,
+    {
+        Ok(())
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
@@ -153,6 +162,63 @@ where
 
     pub fn wrapped_sub(&mut self, num: u8) {
         self.tape[self.tape_pointer].wrapping_decrement(num);
+    }
+
+    // [
+    pub fn loop_forward(&mut self) -> Result<(), VMError> {
+        let mut buffer: [u8; 1] = [0u8; 1];
+        buffer[0] = self.tape[self.tape_pointer].into(); // Type T into u8
+
+        if buffer[0] == 0 {
+            let iter = self.program.commands().iter().skip(self.program_counter);
+
+            let last_instruct = self.program.commands().iter().nth(self.program_counter);
+
+            for instruct in iter {
+                let a_char: char = BFCommand::to_char(instruct.get_command());
+
+                if a_char == ']' {
+                    self.program_counter += 1;
+                    return Ok(());
+                }
+                self.program_counter += 1;
+            }
+            Err(VMError::NestImbalance(*last_instruct.unwrap()))
+        } else {
+            Ok(())
+        }
+    }
+
+    // ]
+    pub fn loop_back(&mut self) -> Result<(), VMError> {
+        let mut buffer: [u8; 1] = [0u8; 1];
+        buffer[0] = self.tape[self.tape_pointer].into(); // Type T into u8
+
+        if buffer[0] != 0 {
+            let instruct = self.program.commands()[self.program_counter];
+            let first_instuct = instruct.clone();
+            let mut found = false;
+
+            while !found || self.program_counter > 0 {
+                let instruct = self.program.commands()[self.program_counter];
+                let a_char: char = BFCommand::to_char(instruct.get_command());
+
+                if a_char == '[' {
+                    self.program_counter -= 1;
+                    found = true;
+                    break;
+                }
+                self.program_counter -= 1;
+            }
+
+            if !found {
+                Err(VMError::NestImbalance(first_instuct))
+            } else {
+                Ok(())
+            }
+        } else {
+            Ok(())
+        }
     }
 
     pub fn has_matching_brackets(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
