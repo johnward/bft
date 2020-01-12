@@ -61,6 +61,28 @@ impl CellKind for u8 {
     }
 }
 
+#[derive(Debug)]
+pub struct Logger<W: Write> {
+    out: W,
+}
+
+impl<W: Write> Logger<W> {
+    pub fn new(out: W) -> Self {
+        Logger { out }
+    }
+
+    // Just write the message directly to the given output with a newline.
+    pub fn log(&mut self, message: &str) {
+        self.out.write(message.as_bytes()).unwrap();
+        self.out.write(b"\n").unwrap();
+    }
+
+    // Not an interesting method, but could be if we added buffering.
+    pub fn flush(&mut self) {
+        self.out.flush().unwrap();
+    }
+}
+
 /// Error enum
 #[derive(Debug, Clone, Copy)]
 pub enum VMError {
@@ -187,10 +209,14 @@ where
         let instruct = self.program.commands()[self.program_counter];
         buffer[0] = self.tape[self.tape_pointer].into(); // Type T into u8
 
-        writer.write_all(b"hello world");
+        println!("{}", buffer[0]);
+        //writer.write_all(b"hello world");
 
         match writer.write(&buffer) {
-            Ok(s) => Ok(s),
+            Ok(s) => {
+                //writer.flush();
+                Ok(s)
+            }
             Err(_) => Err(VMError::IOWriteError(instruct)),
         }
     }

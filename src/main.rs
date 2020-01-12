@@ -2,6 +2,7 @@ use bft_interp::BFVirtualMachine;
 use bft_types::BFProgram;
 use std::io::Cursor;
 //use std::env::args;
+use std::io::Write;
 use std::result::Result;
 
 mod cli;
@@ -9,7 +10,7 @@ mod cli;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (filename, cells_number) = cli::get_filename_and_cells();
 
-    let mut buff = Cursor::new(vec![15]);
+    let mut buff = Cursor::new(vec![15, 23]);
 
     println!("Filename {}", filename);
     println!("Number of Cells: {}", cells_number);
@@ -37,9 +38,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = std::io::stdout();
     let mut handle = stdout.lock();
 
+    handle.write_all(b"hello world!!!!!!!!!\n")?;
+
     match virtual_machine.output(&mut handle) {
         // pass the borrow as mutable
-        Ok(s) => println!("Read Correctly {}", s),
+        Ok(_) => println!("Read Correctly"),
         Err(_e) => println!("Read Error"),
     };
 
