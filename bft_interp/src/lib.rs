@@ -92,12 +92,14 @@ pub enum VMError {
     IOReadError(InputInstruction),
     IOWriteError(InputInstruction),
     NestImbalance(InputInstruction),
+    ProgramOutOfBounds(InputInstruction),
 }
 
 #[derive(Debug)]
 pub struct BFVirtualMachine<'a, T> {
     program: &'a BFProgram,
     program_counter: usize,
+    program_counter_size: usize,
     can_grow: bool,
     tape_pointer: usize,
     tape_size: usize,
@@ -115,6 +117,7 @@ where
         BFVirtualMachine {
             program: a_program,
             program_counter: 0,
+            program_counter_size: a_program.commands().len(),
             can_grow,
             tape_pointer: 0,
             tape_size,
@@ -122,22 +125,68 @@ where
         }
     }
 
-    pub fn interpret<R, W>(&mut self, input: R, output: W) -> Result<(), VMError>
+    pub fn interpret<R, W>(&mut self, mut input: R, mut output: W) -> Result<(), VMError>
     where
         R: Read,
         W: Write,
     {
-        Ok(())
+        loop {
+            let bf_instruction = self.program.commands()[self.program_counter];
+
+            let res = match bf_instruction.get_command() {
+                BFCommand::IncrementPointer => self.move_head_right(),
+                BFCommand::DecrementPointer => self.move_head_left(),
+                BFCommand::IncrementByte => self.wrapped_add(1),
+                BFCommand::DecrementByte => self.wrapped_sub(1),
+                BFCommand::OutputByte => self.output(&mut output),
+                BFCommand::InputByte => self.input(&mut input),
+                BFCommand::IfZeroJumpForward => self.jump_forward(),
+                BFCommand::IfNonZeroJumpBack => self.jump_back(),
+            };
+
+            if self.program_counter > self.program_counter_size {
+                break Ok(());
+            }
+
+            match res {
+                Ok(s) => self.program_counter = s,
+                Err(e) => break Err(e),
+            }
+        }
+    }
+
+    fn increment_program_counter(&mut self) -> Result<usize, VMError> {
+        let mut next_pointer = self.program_counter; // Ask Question
+        next_pointer += 1;
+        if next_pointer == self.program_counter_size {
+            self.program_counter = next_pointer;
+            Ok(self.program_counter)
+        } else {
+            Err(VMError::ProgramOutOfBounds(
+                self.program.commands()[self.program_counter],
+            ))
+        }
+    }
+
+    fn decrement_program_counter(&mut self) -> Result<usize, VMError> {
+        if self.program_counter == 0 {
+            Err(VMError::ProgramOutOfBounds(
+                self.program.commands()[self.program_counter],
+            ))
+        } else {
+            self.program_counter -= 1;
+            Ok(self.program_counter)
+        }
     }
 
     pub fn get_current_cell(&self) -> &InputInstruction {
         &self.program.commands()[self.tape_pointer]
     }
 
-    pub fn move_head_left(&mut self) -> Result<(), VMError> {
+    pub fn move_head_left(&mut self) -> Result<usize, VMError> {
         if self.tape_pointer > 0 {
             self.tape_pointer -= 1;
-            Ok(())
+            self.decrement_program_counter()
         } else {
             Err(VMError::InvalidHeadPosition(
                 self.program.commands()[self.tape_pointer], // this needs changing
@@ -145,10 +194,9 @@ where
         }
     }
 
-    pub fn move_head_right(&mut self) -> Result<(), VMError> {
+    pub fn move_head_right(&mut self) -> Result<usize, VMError> {
         if self.tape_pointer < (self.tape_size - 1) {
-            self.tape_pointer += 1;
-            Ok(())
+            self.increment_program_counter()
         } else {
             Err(VMError::InvalidHeadPosition(
                 self.program.commands()[self.tape_pointer],
@@ -156,16 +204,18 @@ where
         }
     }
 
-    pub fn wrapped_add(&mut self, num: u8) {
+    pub fn wrapped_add(&mut self, num: u8) -> Result<usize, VMError> {
         self.tape[self.tape_pointer].wrapping_increment(num);
+        Ok(self.program_counter)
     }
 
-    pub fn wrapped_sub(&mut self, num: u8) {
+    pub fn wrapped_sub(&mut self, num: u8) -> Result<usize, VMError> {
         self.tape[self.tape_pointer].wrapping_decrement(num);
+        Ok(self.program_counter)
     }
 
     // [
-    pub fn loop_forward(&mut self) -> Result<(), VMError> {
+    pub fn jump_forward(&mut self) -> Result<usize, VMError> {
         let mut buffer: [u8; 1] = [0u8; 1];
         buffer[0] = self.tape[self.tape_pointer].into(); // Type T into u8
 
@@ -179,18 +229,19 @@ where
 
                 if a_char == ']' {
                     self.program_counter += 1;
-                    return Ok(());
+                    return Ok(self.program_counter);
                 }
                 self.program_counter += 1;
             }
             Err(VMError::NestImbalance(*last_instruct.unwrap()))
         } else {
-            Ok(())
+            self.program_counter += 1;
+            Ok(self.program_counter)
         }
     }
 
     // ]
-    pub fn loop_back(&mut self) -> Result<(), VMError> {
+    pub fn jump_back(&mut self) -> Result<usize, VMError> {
         let mut buffer: [u8; 1] = [0u8; 1];
         buffer[0] = self.tape[self.tape_pointer].into(); // Type T into u8
 
@@ -214,10 +265,12 @@ where
             if !found {
                 Err(VMError::NestImbalance(first_instuct))
             } else {
-                Ok(())
+                self.program_counter += 1;
+                Ok(self.program_counter)
             }
         } else {
-            Ok(())
+            self.program_counter += 1;
+            Ok(self.program_counter)
         }
     }
 

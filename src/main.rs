@@ -19,12 +19,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut virtual_machine: BFVirtualMachine<u8> = BFVirtualMachine::new(&program, false, 30000);
 
+    //virtual_machine.interpret
+
     println!("Current Cell: {}", virtual_machine.get_current_cell());
 
     let interp = virtual_machine.move_head_right();
 
     match interp {
-        Ok(()) => println!("It's OK!!!"),
+        Ok(_s) => println!("It's OK!!!"),
         Err(_e) => println!("It's Not OK"),
     }
 
@@ -46,10 +48,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_e) => println!("Read Error"),
     };
 
+    let res = virtual_machine.interpret(&mut buff, &mut handle);
+
+    match res {
+        Ok(()) => println!("All OK"),
+        Err(_e) => println!("Not OK"),
+    }
+
     let interp = virtual_machine.move_head_right();
 
     match interp {
-        Ok(()) => println!("It's OK!!!"),
+        Ok(_s) => println!("It's OK!!!"),
         Err(_e) => println!("It's Not OK"),
     }
 
