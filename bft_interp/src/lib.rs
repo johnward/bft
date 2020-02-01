@@ -354,13 +354,13 @@ impl<'a, T> fmt::Display for BFVirtualMachine<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::BFVirtualMachine;
-    //use super::CellKind;
-    //use bft_types::BFCommand;
+    use super::CellKind;
+    use bft_types::BFCommand;
     use bft_types::BFProgram;
     use std::env;
     use std::io::Cursor;
 
-    /*#[test]
+    #[test]
     fn first_instruction_valid() {
         let mut path = env::current_dir().unwrap();
 
@@ -390,7 +390,7 @@ mod tests {
             let result = virtual_machine.move_head_right();
 
             match result {
-                Ok(()) => (),
+                Ok(num) => (),
                 Err(_e) => (),
             }
 
@@ -420,7 +420,7 @@ mod tests {
             let result = virtual_machine.move_head_right();
 
             match result {
-                Ok(()) => (),
+                Ok(num) => (),
                 Err(_e) => (),
             }
 
@@ -432,10 +432,10 @@ mod tests {
 
         let result = virtual_machine.move_head_left();
 
-        match result {
+        /*match result {
             Ok(()) => (),
             Err(_e) => (),
-        }
+        }*/
 
         let instruction = virtual_machine.get_current_cell();
 
@@ -489,7 +489,7 @@ mod tests {
         println!("aa {}", aa);
 
         assert_eq!(aa, 254);
-    }*/
+    }
 
     #[test]
     fn test_read_write1() {
