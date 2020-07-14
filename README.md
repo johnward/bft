@@ -1,4 +1,4 @@
-# Brain Fuck (bft) Interpreter
+# Brain F*ck (bft) Interpreter
 
 This project has been used for me to learn the Rust programming langauge, thank you Daniel Silverstone :-)
 
